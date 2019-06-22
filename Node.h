@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 
+#define eps 1e-6
 /* Base: class Node
  * 由于计算图基于树的数据结构，将结点作为基类
  * 变量、常数等所有可被视为节点的结构均基于Node类开发

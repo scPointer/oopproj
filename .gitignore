@@ -1,0 +1,8 @@
+/.vscode/
+/*.txt
+/*.exe
+*.input
+*.output
+*.py
+*.pdf
+*.json

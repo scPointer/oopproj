@@ -44,7 +44,7 @@ double Unary_Operator::cal ( string s , double v , bool& is_legal , string print
         else 
         {
             is_legal = false ;
-            throw_error ( 4 ) ;
+            throw_error ( NON_POSITIVE_VALUE_IN_LOG ) ;
             return 0.0 ;
         }
     }
@@ -54,10 +54,19 @@ double Unary_Operator::cal ( string s , double v , bool& is_legal , string print
         printf ( "%.4lf\n" , v ) ;
         return v ;
     }
+    else if( s == "ASSERT" )
+    {
+        if( v < eps )
+        {
+            is_legal = false;
+            throw_error( ASSERTION_FAILED ) ;
+        }
+        return 0.0 ;
+    }
     else
     {
         is_legal = false ;
-        throw_error ( 3 , s ) ;
+        throw_error ( NO_MATCH_OPERATOR_FOR , s ) ;
         return 0.0 ;
     }
     
@@ -67,51 +76,55 @@ double Unary_Operator::cal ( string s , double v , bool& is_legal , string print
 double Binary_Operator::cal ( string s , double v1 , double v2 , bool& is_legal )
 {
     if ( s == "+" ) return v1 + v2 ;
-    if ( s == "-" ) return v1 - v2 ;
-    if ( s == "*" ) return v1 * v2 ;
-    if ( s == "/" )
+    else if ( s == "-" ) return v1 - v2 ;
+    else if ( s == "*" ) return v1 * v2 ;
+    else if ( s == "/" )
     {
         if ( v2 == 0 )
         {
             is_legal = false ;
-            throw_error ( 1 ) ;
+            throw_error ( DEVISION_BY_ZERO ) ;
             return 0.0 ;
         }
         else return v1 / v2 ;
     }
-    if ( s == "<" )
+    else if ( s == "<" )
     {
         if ( v1 < v2 ) return 1.0 ;
         else return 0.0 ;
     }
-    if ( s == ">" )
+    else if ( s == ">" )
     {
         if ( v1 > v2 ) return 1.0 ;
         else return 0.0 ;
     }
-    if ( s == "<=" )
+    else if ( s == "<=" )
     {
         if ( v1 <= v2 ) return 1.0 ;
         else return 0.0 ;
     }
-    if ( s == ">=" )
+    else if ( s == ">=" )
     {
         if ( v1 >= v2 ) return 1.0 ;
         else return 0.0 ;
     }
-    if ( s == "==" )
+    else if ( s == "==" )
     {
         if ( v1 == v2 ) return 1.0 ;
         else return 0.0 ;
     }
-    if ( s == "=" )
+    else if( s == "BIND" )
+    {
+        return v1 ;
+    }
+    else if ( s == "=" )
     {
         is_legal = false ;
-        throw_error ( 5 ) ;
+        throw_error ( UNNECESSARY_ASSIGNMENT ) ;
         return 0.0 ;
     }
     is_legal = false ;
-    throw_error ( 3 , s ) ;
+    throw_error ( NO_MATCH_OPERATOR_FOR , s ) ;
     return 0.0 ;
 }
 
@@ -124,7 +137,7 @@ double Ternary_Operator::cal ( string s , double v1 , double v2 , double v3 , bo
     else
     {
         is_legal = false ;
-        throw_error ( 3 , s ) ;
+        throw_error ( NO_MATCH_OPERATOR_FOR , s ) ;
         return 0.0 ;
     }
     return 0.0 ;

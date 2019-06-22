@@ -16,6 +16,6 @@ void init ( Node* N ) ;
 
 void build_tree( std::string s, std::map < std::string , Node* >& Var_map ) ;
 
-Node* connect ( std::vector<std::string> s , std::map<std::string , Node*> Var_map , int head , int tail , bool& is_legal ) ;
+Node* connect ( std::vector<std::string> s , std::map<std::string , Node*>& Var_map , int head , int tail , bool& is_legal ) ;
 
 #endif

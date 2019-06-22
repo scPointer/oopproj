@@ -316,7 +316,7 @@ double com ( Node* N , bool& is_legal )
             else
             {
                 is_legal = false ;
-                throw_error ( 2 ) ;
+                throw_error ( PLACEHOLDER_MISSING ) ;
                 return 0.0 ;
             }
         }
@@ -345,7 +345,7 @@ double com ( Node* N , bool& is_legal )
                 else //此处其实已经保证了eval的是var结点，不会进入此else分支。但我就是想写这个else。。。
                 {
                     is_legal = false ;
-                    throw_error ( 0 ) ;
+                    throw_error ( UNKNOWN_TYPE_ERROR ) ;
                     return 0.0 ;
                 }
             }
@@ -390,6 +390,10 @@ double com ( Node* N , bool& is_legal )
     {
         //建树保证两个后继结点的Node仅有Binary_Operator类型结点
         Binary_Operator* bin = dynamic_cast < Binary_Operator* > ( N ) ;
+        if(bin -> cal_name == "AT")//求导运算特殊处理
+        {
+
+        }
         double v1 = com ( N -> next[0] , is_legal ) ; //计算第一个值
         if ( !is_legal ) return 0.0 ;
         double v2 = com ( N -> next[1] , is_legal ) ; //计算第二个值
@@ -412,7 +416,7 @@ double com ( Node* N , bool& is_legal )
     }
     else //无法识别结点
     {
-        throw_error ( 8 ) ;
+        throw_error ( UNKNOWN_NODE_TYPE ) ;
         is_legal = false ;
         return 0.0 ;
     }

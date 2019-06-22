@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-void throw_error ( int v , std::string s )
+void throw_error ( int v , std::string s = "")
 {
     switch ( v )
     {
@@ -22,7 +22,7 @@ void throw_error ( int v , std::string s )
         }
         case 3 : //未定义运算符
         {
-            std::cout << "ERROR: No matching operator for '" << s << "'\n" ;
+            std::cout << "ERROR: No match operator for '" << s << "'\n" ;
             break ;
         }
         case 4 : //LOG函数传入非正数
@@ -30,11 +30,12 @@ void throw_error ( int v , std::string s )
             std::cout << "ERROR: LOG operator's input must be positive\n" ;
             break ;
         }
-        case 5 : //。。。算了我也不知道我定义这个干什么的
-        {
-            std::cout << "ERROR: No matching operators\n" ;
-            break ;
-        }
+/*        case 5 : //。。。算了我也不知道我定义这个干什么的
+ *       {
+ *           std::cout << "ERROR: No matching operators\n" ;
+ *           break ;
+ *       }
+ */
         case 6 : //调用eval函数访问非Placeholder结点或非Var结点
         {
             std::cout << "ERROR: Cannot evaluate a non-Placeholder or a non-Var type node\n" ;
@@ -99,6 +100,22 @@ void throw_error ( int v , std::string s )
         {
             std::cout << "ERROR: Node redefined\n" ;
             break ;
+        }
+        case 20 : //表达式中间的赋值符号
+        {
+            std::cout << "ERROR: unnecessary '=' in expressions, did you mean \"==\"?\n" ;
+            break ;
+        }
+        case 21 : //Assert 输入的值为 0
+        {
+            std::cout << "ERROR: Assertion failed\n" ;
+            break;
+        }
+        case 22 : //运算符的参数个数错误
+        {
+            std::cout << "ERROR: The operator COND should have exactly 3 parameters\n" ;
+            std::cout << "And the operator BIND should have exactly 2 parameters\n" ;
+            break;
         }
         default : //如果你自己写了throw_error并且随意写参数值。。。那就不知道你想要调用哪个错误类型了
         {

@@ -26,12 +26,12 @@ void build_var ( string s , map < string , Node* >& Var_map ) //第一步赋值
         }
         catch ( std::invalid_argument& )
         {
-            throw_error ( 10 ) ;
+            throw_error ( ILLEGAL_EXPRESSION ) ;
             return ;
         }
         catch ( std::out_of_range& )
         {
-            throw_error ( 17 ) ;
+            throw_error ( DATA_OUT_OF_RANGE ) ;
             return ;
         }
     }
@@ -44,7 +44,7 @@ void build_var ( string s , map < string , Node* >& Var_map ) //第一步赋值
     {
         if ( Var_map.find ( vec [ 0 ] ) != Var_map.end() )
         {
-            throw_error ( 19 ) ;
+            throw_error ( NODE_REDEFINED ) ;
             return ;
         } 
         Node* N = new Placeholder ( vec [ 0 ] ) ;
@@ -60,12 +60,12 @@ void build_var ( string s , map < string , Node* >& Var_map ) //第一步赋值
     {
         if ( vec.size () < 3 )
         {
-            throw_error ( 10 ) ;
+            throw_error ( ILLEGAL_EXPRESSION ) ;
             return ;
         }
         if ( Var_map.find ( vec [ 0 ] ) != Var_map.end() )
         {
-            throw_error ( 19 ) ;
+            throw_error ( NODE_REDEFINED ) ;
             return ;
         }
         Node* N = new Constant ( vec [ 0 ] , v ) ;
@@ -81,12 +81,12 @@ void build_var ( string s , map < string , Node* >& Var_map ) //第一步赋值
     {
         if ( vec.size () < 3 )
         {
-            throw_error ( 10 ) ;
+            throw_error ( ILLEGAL_EXPRESSION ) ;
             return ;
         }
         if ( Var_map.find ( vec [ 0 ] ) != Var_map.end() ) 
         {
-            throw_error ( 19 ) ;
+            throw_error ( NODE_REDEFINED ) ;
             return ;
         }
         Node* N = new Variable ( vec [ 0 ] , v ) ;
@@ -96,7 +96,7 @@ void build_var ( string s , map < string , Node* >& Var_map ) //第一步赋值
 
     /**********end**********/
 
-    throw_error ( 15 ) ;
+    throw_error ( UNKNOWN_NODE_TYPE ) ;
     return ;
 }
 
@@ -104,12 +104,12 @@ void build_var ( string s , map < string , Node* >& Var_map ) //第一步赋值
 Node* create_calculator(string s, int & count_arg) //后者是此运算符的参数个数
 {
     Node* N ;
-    if ( s == "PRINT" || s == "SIN" || s == "LOG" || s == "EXP" || s == "SIGMOID" || s == "TANH" )
+    if ( s == "PRINT" || s == "SIN" || s == "LOG" || s == "EXP" || s == "SIGMOID" || s == "TANH" || s == "ASSERT")
     {
         N = new Unary_Operator ( s ) ;
         count_arg = 1 ;
     }
-    else if(s=="+"||s=="-"||s=="*"||s=="/"||s=="<"||s==">"||s=="<="||s==">="||s=="==") //|| "Print" || ...
+    else if(s=="+"||s=="-"||s=="*"||s=="/"||s=="<"||s==">"||s=="<="||s==">="||s=="=="||s=="BIND") //|| "Print" || ...
     {
         //Unary_Operator* una = new Unary_Operator ( s )
         N = new Binary_Operator ( s ) ;
@@ -132,22 +132,25 @@ Node* create_calculator(string s, int & count_arg) //后者是此运算符的参
 //优先级
 inline int priority ( std::string c )
 {
+    
     if ( c == "<" ) return 1 ;
     if ( c == ">" ) return 1 ;
     if ( c == "<=" ) return 1 ;
     if ( c == ">=" ) return 1 ;
     if ( c == "==" ) return 1 ;
-    if(c=="+") return 2 ;
-    if(c=="-") return 2 ;
-    if(c=="*") return 3 ;
-    if(c=="/") return 3 ;
+    if ( c == "+" ) return 2 ;
+    if ( c == "-") return 2 ;
+    if ( c == "*") return 3 ;
+    if ( c == "/") return 3 ;
     if ( c == "SIN" ) return 4 ;
     if ( c == "LOG" ) return 4 ;
     if ( c == "EXP" ) return 4 ;
     if ( c == "SIGMOID" ) return 4 ;
     if ( c == "TANH" ) return 4 ;
     if ( c == "PRINT" ) return 5 ;
-    if ( c == "COND" ) return 5 ;
+    if ( c == "ASSERT" ) return 5 ;
+    if ( c == "COND" ) return 5;
+    if ( c == "BIND" ) return 5;
     return 0 ;
 }
 
@@ -158,12 +161,14 @@ void init(Node* N)
     if( s == "Var" )
     {
         Var* v = dynamic_cast < Var* > ( N ) ;
+        if(v->have_value == false)
+            return;
         v->have_value = false;
     }
     else if ( s == "Placeholder" )
     {
         Placeholder* p = dynamic_cast < Placeholder* > ( N ) ;
-        p -> have_value = false ;
+        p->have_value = false ;
     }
     int size = N->next.size();
     for(int i=0;i<size;i++)
@@ -182,17 +187,17 @@ void build_tree(string s, std::map < std::string , Node* >& Var_map )   // 要�
     stringstream is(s); //将指令转换为字符串流
     string buf; //读取指令用的临时变量
     vector<string> vec; //储存指令用
-    while(is>>buf)vec.push_back(buf); //读取指令
+    while(is>>buf) vec.push_back(buf); //读取指令
     std::map < std::string , Node* >::iterator iter = Var_map.find ( vec [ 0 ] ) ; //查找链接所需结点
     if ( iter != Var_map.end() && iter -> second -> get_name () != "Var" ) //出现了未定义的结点，报错，退出
     {
-        throw_error ( 19 ) ;
+        throw_error ( NODE_REDEFINED ) ;
         return ;
     }
     Node* node = new Var(vec[0]); //確定是Var類型
     if ( vec.size () < 2 || vec [ 1 ] != "=" )
     {
-        throw_error ( 10 ) ;
+        throw_error ( ILLEGAL_EXPRESSION ) ;
         return ;
     }
     bool is_legal = true ;
@@ -213,7 +218,7 @@ void build_tree(string s, std::map < std::string , Node* >& Var_map )   // 要�
  *      is_legal：判定能否正常链接这棵树
  * 返回值：一个Node*结点，表示建好的树的根结点
 **/
-Node* connect(std::vector<string> vec , std::map<std::string , Node*> Var_map , int head , int tail , bool& is_legal )
+Node* connect(std::vector<string> vec , std::map<std::string , Node*>& Var_map , int head , int tail , bool& is_legal )
 {
     //std::cout << head << " " << tail << "\n" ;
     Node* N;
@@ -221,16 +226,17 @@ Node* connect(std::vector<string> vec , std::map<std::string , Node*> Var_map , 
                        //行吧打脸了，刚写完这个注释我就触发了这个错误。
     {
         is_legal = false ;
-        throw_error ( 10 ) ;
+        throw_error ( ILLEGAL_EXPRESSION ) ;
         return N ;
     }
     if(head==tail) //单个操作符
     {
-        if ( Var_map.find ( vec [ head ] ) != Var_map.end() ) N = Var_map [ vec [ head ] ] ;
+        if ( Var_map.find ( vec [ head ] ) != Var_map.end() )
+            N = Var_map [ vec [ head ] ] ;
         else //不存在的结点
         {
             is_legal = false ;
-            throw_error ( 7 , vec [ head ] ) ;
+            throw_error ( NODE_NOT_FOUND , vec [ head ] ) ;
             return N ;
         }
     }
@@ -258,7 +264,7 @@ Node* connect(std::vector<string> vec , std::map<std::string , Node*> Var_map , 
         {
             if ( vec [ head ] != "(" || vec [ tail ] != ")" ) //如果没有被括号括起来
             {
-                throw_error ( 10 ) ;
+                throw_error ( ILLEGAL_EXPRESSION ) ;
                 is_legal = false ;
                 return N ;
             }
@@ -278,7 +284,7 @@ Node* connect(std::vector<string> vec , std::map<std::string , Node*> Var_map , 
             }
             catch ( const char* s ) 
             {
-                throw_error ( 5 ) ;
+                throw_error ( NO_MATCH_OPERATOR_FOR , vec[position_least_priority]) ;
                 is_legal = false ;
                 return N ;
             }
@@ -295,6 +301,21 @@ Node* connect(std::vector<string> vec , std::map<std::string , Node*> Var_map , 
                     
                 case 2: //双目运算符
                 {
+                    if( vec[position_least_priority] == "BIND" ) 
+                    {
+                        if(tail != head + 2)
+                        {
+                            throw_error( PARAMETER_COUNT_ERROR ) ;
+                            is_legal = false;
+                            return N;
+                        }
+                        Node* n1 = connect ( vec , Var_map , position_least_priority + 1 , position_least_priority + 1 , is_legal ) ;
+                        if ( !is_legal ) return N ;
+                        Node* n2 = connect ( vec , Var_map , position_least_priority + 2 , position_least_priority + 2 , is_legal ) ;
+                        if ( !is_legal ) return N ;
+                        N -> add_next ( n1 ) ; N -> add_next ( n2 ) ;
+                        break;
+                    }
                     Node* n1 = connect ( vec , Var_map , head , position_least_priority - 1 , is_legal ) ; //链接左侧
                     if ( !is_legal ) return N ;
                     Node* n2 = connect ( vec , Var_map , position_least_priority + 1 , tail , is_legal ) ; //链接右侧
@@ -304,11 +325,21 @@ Node* connect(std::vector<string> vec , std::map<std::string , Node*> Var_map , 
                 }
                 
                 case 3: //三目运算符
-                        //由于三目运算符没有明确的语法规定，不知道它能不能放到复杂表达式里。因此此处默认COND运算符后接的是三个简单结点。若出现了三元运算符的复杂规则，请自行改动此处代码
+                        //此处默认COND运算符后接的是三个简单结点。
                 {
-                    N->add_next(Var_map[vec[3]]);
-                    N->add_next(Var_map[vec[4]]);
-                    N->add_next(Var_map[vec[5]]);
+                    if(tail != head + 3)
+                    {
+                        throw_error( PARAMETER_COUNT_ERROR ) ;
+                        is_legal = false;
+                        return N;
+                    }
+                    Node* n1 = connect ( vec , Var_map , position_least_priority + 1 , position_least_priority + 1 , is_legal ) ;
+                    if ( !is_legal ) return N ;
+                    Node* n2 = connect ( vec , Var_map , position_least_priority + 2 , position_least_priority + 2 , is_legal ) ;
+                    if ( !is_legal ) return N ;
+                    Node* n3 = connect ( vec , Var_map , position_least_priority + 3 , position_least_priority + 3 , is_legal ) ;
+                    if ( !is_legal ) return N ;
+                    N -> add_next ( n1 ) ; N -> add_next ( n2 ) ; N -> add_next( n3 );
                     break;
                 }
                     
