@@ -26,6 +26,11 @@
 #define UNNECESSARY_ASSIGNMENT 20
 #define ASSERTION_FAILED 21
 #define PARAMETER_COUNT_ERROR 22
+#define DERIVATIVE_TO_CONSTANT 23
+#define DERIVATIVE_NOT_AVAILABLE 24
+#define TRY_HIGHER_DERIVATIVE 25
+#define GRAD_OPERATOR_NOT_FOUND 26
+#define AT_OPERATOR_NOT_FOUND 27
 void throw_error ( int v , std::string s = "" ) ;
 
 #endif

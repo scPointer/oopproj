@@ -32,7 +32,8 @@ int main()
     {
         getline(cin,buffer);
         double answer;
-        if(Compute(buffer,my_map,set_answer_value,answer)) printf ( "%.4lf\n" , answer ) ;
+        if(Compute(buffer,my_map,set_answer_value,answer))
+            printf ( "%.4lf\n" , answer ) ;
         set_answer_value.push_back(answer);
     }
 

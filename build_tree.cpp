@@ -120,6 +120,16 @@ Node* create_calculator(string s, int & count_arg) //后者是此运算符的参
         N = new Ternary_Operator ( s ) ;
         count_arg = 3 ;
     }
+    else if(s == "GRAD")
+    {
+        N = new Grad_Operator();
+        count_arg = 1;
+    }
+    else if(s == "AT")
+    {
+        N = new At_Operator();
+        count_arg = 2;
+    }
     // Binary/...
     else
     {
@@ -142,15 +152,17 @@ inline int priority ( std::string c )
     if ( c == "-") return 2 ;
     if ( c == "*") return 3 ;
     if ( c == "/") return 3 ;
-    if ( c == "SIN" ) return 4 ;
-    if ( c == "LOG" ) return 4 ;
-    if ( c == "EXP" ) return 4 ;
-    if ( c == "SIGMOID" ) return 4 ;
-    if ( c == "TANH" ) return 4 ;
-    if ( c == "PRINT" ) return 5 ;
-    if ( c == "ASSERT" ) return 5 ;
-    if ( c == "COND" ) return 5;
-    if ( c == "BIND" ) return 5;
+    if ( c == "AT" ) return 4;
+    if ( c == "SIN" ) return 5 ;
+    if ( c == "LOG" ) return 5 ;
+    if ( c == "EXP" ) return 5 ;
+    if ( c == "SIGMOID" ) return 5 ;
+    if ( c == "TANH" ) return 5 ;
+    if ( c == "PRINT" ) return 6 ;
+    if ( c == "ASSERT" ) return 6 ;
+    if ( c == "COND" ) return 6 ;
+    if ( c == "BIND" ) return 6 ;
+    if ( c == "GRAD" ) return 6 ;
     return 0 ;
 }
 
@@ -161,9 +173,10 @@ void init(Node* N)
     if( s == "Var" )
     {
         Var* v = dynamic_cast < Var* > ( N ) ;
-        if(v->have_value == false)
+        if(v->have_value == false && v->check_grad_empty())
             return;
         v->have_value = false;
+        v->clear_grad();
     }
     else if ( s == "Placeholder" )
     {
@@ -194,7 +207,7 @@ void build_tree(string s, std::map < std::string , Node* >& Var_map )   // 要�
         throw_error ( NODE_REDEFINED ) ;
         return ;
     }
-    Node* node = new Var(vec[0]); //確定是Var類型
+    Var* node = new Var(vec[0]); //確定是Var類型
     if ( vec.size () < 2 || vec [ 1 ] != "=" )
     {
         throw_error ( ILLEGAL_EXPRESSION ) ;
@@ -208,6 +221,8 @@ void build_tree(string s, std::map < std::string , Node* >& Var_map )   // 要�
         return ;
     }
     node->add_next(N); //将建好的树的根结点（运算符结点）链接到变量结点上
+    if(N -> get_name() == "Grad_Operator")
+        node -> have_grad_node = true;
     Var_map [ vec [ 0 ] ] = node ; //添加变量结点
 }
 
@@ -229,7 +244,7 @@ Node* connect(std::vector<string> vec , std::map<std::string , Node*>& Var_map ,
         throw_error ( ILLEGAL_EXPRESSION ) ;
         return N ;
     }
-    if(head==tail) //单个操作符
+    else if(head==tail) //单个操作符
     {
         if ( Var_map.find ( vec [ head ] ) != Var_map.end() )
             N = Var_map [ vec [ head ] ] ;
@@ -276,7 +291,6 @@ Node* connect(std::vector<string> vec , std::map<std::string , Node*>& Var_map ,
 
             /**********语法检查**********/
             //事实上这一步不会出问题，因为position_least_priority不会指向非运算符结点
-            //你能触发这个错误算我输
 
             try
             {
@@ -301,7 +315,7 @@ Node* connect(std::vector<string> vec , std::map<std::string , Node*>& Var_map ,
                     
                 case 2: //双目运算符
                 {
-                    if( vec[position_least_priority] == "BIND" ) 
+                    if( vec[position_least_priority] == "BIND" ) // 此处默认BIND运算符后接的是两个简单结点。
                     {
                         if(tail != head + 2)
                         {

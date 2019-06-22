@@ -290,7 +290,7 @@ bool Compute ( std::string s , std::map < std::string , Node* > Var_map , std::v
 
         return is_legal ; //若该表达式不能合法计算，则在函数内部抛出错误，不需要也无法输出
     }
-    throw_error ( 10 ) ; //不合法表达式
+    throw_error ( NO_MATCH_OPERATOR_FOR, vec[0] ) ; //未找到运算符
     return false ;
 }
 
@@ -332,12 +332,25 @@ double com ( Node* N , bool& is_legal )
         if ( name == "Var" ) //Var结点特殊处理，判定是否已经被计算过
         {
             Var* var = dynamic_cast < Var* > ( N ) ;
-            if ( var -> have_value ) return get_value ( N ) ; //已被计算过
+            if( var -> have_grad_node ) // 用户直接对 GRAD 求值是非法的。
+            {
+                is_legal = false;
+                throw_error( AT_OPERATOR_NOT_FOUND );
+                return 0.0 ;
+            }
+            else if ( var -> have_value ) //已被计算过
+            {
+                return get_value ( N ) ; 
+            }
             else //未被计算过
             {
                 double v = com ( N -> next[0] , is_legal ) ; //计算
-                if ( !is_legal ) return 0.0 ; //无法计算
-                if ( eval ( v , N ) ) //尝试赋值
+                if ( !is_legal ) //无法计算
+                {
+                    var -> have_value = true;
+                    return 0.0 ;
+                }
+                else if ( eval ( v , N ) ) //尝试赋值
                 {
                     var -> have_value = true ;
                     return v ;
@@ -349,6 +362,12 @@ double com ( Node* N , bool& is_legal )
                     return 0.0 ;
                 }
             }
+        }
+        else if ( name == "Grad_Operator" )// 一定要先遇到 AT 算符才能遇到 GRAD。用户直接对 GRAD 求值是非法的。
+        {
+            is_legal = false;
+            throw_error( AT_OPERATOR_NOT_FOUND );
+            return 0.0 ;
         }
         else
         {
@@ -388,19 +407,23 @@ double com ( Node* N , bool& is_legal )
     }
     else if(len==2) //二元运算符
     {
-        //建树保证两个后继结点的Node仅有Binary_Operator类型结点
-        Binary_Operator* bin = dynamic_cast < Binary_Operator* > ( N ) ;
-        if(bin -> cal_name == "AT")//求导运算特殊处理
+        if(N -> get_name() == "At_Operator" ) // 单独处理 AT 算符
         {
-
+            At_Operator* ato = dynamic_cast<At_Operator*> (N);
+            return ato->cal(is_legal);
         }
-        double v1 = com ( N -> next[0] , is_legal ) ; //计算第一个值
-        if ( !is_legal ) return 0.0 ;
-        double v2 = com ( N -> next[1] , is_legal ) ; //计算第二个值
-        if ( !is_legal ) return 0.0 ;
-        double v = bin -> cal ( bin->cal_name , v1 , v2 , is_legal ); //计算
-        if ( !is_legal ) return 0.0 ;
-        return v ;
+        //两个后继结点的Node除了 AT 以外一定是Binary_Operator类型结点
+        else
+        {
+            Binary_Operator* bin = dynamic_cast < Binary_Operator* > ( N ) ;
+            double v1 = com ( N -> next[0] , is_legal ) ; //计算第一个值
+            if ( !is_legal ) return 0.0 ;
+            double v2 = com ( N -> next[1] , is_legal ) ; //计算第二个值
+            if ( !is_legal ) return 0.0 ;
+            double v = bin -> cal ( bin->cal_name , v1 , v2 , is_legal ); //计算
+            if ( !is_legal ) return 0.0 ;
+            return v ;
+        }
     }
     else if(len==3) //三元运算符
     {

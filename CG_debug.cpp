@@ -103,7 +103,7 @@ void throw_error ( int v , std::string s = "")
         }
         case 20 : //表达式中间的赋值符号
         {
-            std::cout << "ERROR: unnecessary '=' in expressions, did you mean \"==\"?\n" ;
+            std::cout << "ERROR: Unnecessary '=' in expressions, did you mean \"==\"?\n" ;
             break ;
         }
         case 21 : //Assert 输入的值为 0
@@ -115,6 +115,31 @@ void throw_error ( int v , std::string s = "")
         {
             std::cout << "ERROR: The operator COND should have exactly 3 parameters\n" ;
             std::cout << "And the operator BIND should have exactly 2 parameters\n" ;
+            break;
+        }
+        case 23 : //试图对常量求导
+        {
+            std::cout << "ERROR: Trying to get derivative of constant node\n" ;
+            break;
+        }
+        case 24 : //该操作符不支持求导
+        {
+            std::cout << "ERROR: Derivative is not available on this operator\n" ;
+            break;
+        }
+        case 25 : //试图求高阶导数
+        {
+            std::cout << "ERROR: Higher derivatives are unsupported\n" ;
+            break;
+        }
+        case 26 : //AT 运算之前没有找到 GRAD 运算
+        {
+            std::cout << "ERROR: The operator GRAD should be used before AT\n" ;
+            break;
+        }
+        case 27 : //GRAD 运算之后没有找到 AT 运算
+        {
+            std::cout << "ERROR: The operator AT should be used after GRAD\n" ;
             break;
         }
         default : //如果你自己写了throw_error并且随意写参数值。。。那就不知道你想要调用哪个错误类型了
