@@ -6,3 +6,5 @@
 *.py
 *.pdf
 *.json
+*.orig
+*.zip

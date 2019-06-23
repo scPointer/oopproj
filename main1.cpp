@@ -7,33 +7,35 @@
 using namespace std;
 int main()
 {
-    int n,m,q;
+    int n, m, q;
     string buffer;
-    map<string,Node*> my_map;
+    map<string, Node*> my_map;
     vector<double> set_answer_value;
-    cin>>n;
-    getchar () ;
-    for(int i=0; i<n; i++)
+    cin >> n;
+    getchar();
+    for(int i = 0; i < n; i++)
     {
 
-        getline(cin,buffer);
-        build_var ( buffer , my_map ) ;
+        getline(cin, buffer);
+        build_var(buffer, my_map);
     }
-    cin>>m;
+    cin >> m;
     getchar();
-    for(int i=0; i<m; i++)
+    for(int i = 0; i < m; i++)
     {
-        getline(cin,buffer);
+        getline(cin, buffer);
         build_tree(buffer, my_map);
     }
-    cin>>q;
+    cin >> q;
     getchar();
-    for(int i=0;i<q;i++)
+    for(int i = 0; i < q; i++)
     {
-        getline(cin,buffer);
+        getline(cin, buffer);
         double answer;
-        if(Compute(buffer,my_map,set_answer_value,answer))
-            printf ( "%.4lf\n" , answer ) ;
+        if(Compute(buffer, my_map, set_answer_value, answer))
+        {
+            printf("%.4lf\n", answer);
+        }
         set_answer_value.push_back(answer);
     }
 

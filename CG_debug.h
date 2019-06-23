@@ -3,7 +3,7 @@
 
 #include <string>
 
-#define UNKNOWN_TYPE_ERROR 0
+#define UNKNOWN_ERROR 0
 #define DEVISION_BY_ZERO 1
 #define PLACEHOLDER_MISSING 2
 #define NO_MATCH_OPERATOR_FOR 3
@@ -16,8 +16,8 @@
 #define ILLEGAL_EXPRESSION 10
 
 #define TRY_TO_GET_VALUE_FROM_OPERATOR 12
-#define EVALUATE_NODE_OF_ILLEGAL_TYPE_BY_SETCONSTANT 13
-
+#define EVALUATE_NODE_OF_ILLEGAL_TYPE_BY_SET 13
+#define EVALUATE_NODE_OF_ILLEGAL_TYPE_BY_EVAL 14
 #define UNKNOWN_NODE_TYPE 15
 #define PARAMETER_MISSING_IN_EVAL 16
 #define DATA_OUT_OF_RANGE 17
@@ -31,6 +31,7 @@
 #define TRY_HIGHER_DERIVATIVE 25
 #define GRAD_OPERATOR_NOT_FOUND 26
 #define AT_OPERATOR_NOT_FOUND 27
-void throw_error ( int v , std::string s = "" ) ;
+
+void throw_error(int v, std::string s = "");
 
 #endif

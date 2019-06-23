@@ -4,10 +4,8 @@
 #include "Node.h"
 #include <string>
 
-double get_value ( Node* N ) ;
-bool eval ( double v , Node* N ) ;
-std::string get_var_name ( Node* N );
-bool Compute ( std::string s , std::map < std::string , Node* > Var_map , std::vector < double > setanswer , double& answer );
-double com ( Node* N , bool& is_legal ) ;
+bool string2double(double& v, std::string s);
+bool Compute(std::string s, std::map < std::string, Node* >& Var_map,
+             std::vector < double > setanswer, double& answer);
 
 #endif
