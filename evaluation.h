@@ -5,7 +5,7 @@
 #include <string>
 
 bool string2double(double& v, std::string s);
-bool Compute(std::string s, std::map < std::string, Node* >& Var_map,
-             std::vector < double > setanswer, double& answer);
+bool Compute(std::string s, std::map<std::string, Node*>& Var_map,
+             std::vector<double> setanswer, double& answer);
 
 #endif

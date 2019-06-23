@@ -8,7 +8,7 @@
 #include "CG_debug.h"
 using namespace std;
 
-void build_var(string s, map < string, Node* >& Var_map)      //第一步赋值
+void build_var(string s, map<string, Node*>& Var_map, vector<Node*>& all_nodes)      //第一步赋值
 {
     stringstream in (s);
     vector < string > vec;
@@ -52,6 +52,7 @@ void build_var(string s, map < string, Node* >& Var_map)      //第一步赋值
         }
         Node* N = new Placeholder(vec [ 0 ]);
         Var_map [ vec [ 0 ] ] = N;
+        all_nodes.push_back(N);
         return;
     }
 
@@ -59,7 +60,7 @@ void build_var(string s, map < string, Node* >& Var_map)      //第一步赋值
 
     /**********创建Constant结点**********/
 
-    if(vec [ 1 ] == "C")
+    else if(vec [ 1 ] == "C")
     {
         if(vec.size() < 3)
         {
@@ -73,6 +74,7 @@ void build_var(string s, map < string, Node* >& Var_map)      //第一步赋值
         }
         Node* N = new Constant(vec [ 0 ], v);
         Var_map [ vec [ 0 ] ] = N;
+        all_nodes.push_back(N);
         return;
     }
 
@@ -80,7 +82,7 @@ void build_var(string s, map < string, Node* >& Var_map)      //第一步赋值
 
     /**********创建Variable结点**********/
 
-    if(vec [ 1 ] == "V")
+    else if(vec [ 1 ] == "V")
     {
         if(vec.size() < 3)
         {
@@ -94,18 +96,19 @@ void build_var(string s, map < string, Node* >& Var_map)      //第一步赋值
         }
         Node* N = new Variable(vec [ 0 ], v);
         Var_map [ vec [ 0 ] ] = N;
+        all_nodes.push_back(N);
         return;
     }
 
     /**********end**********/
-
-    throw_error(UNKNOWN_NODE_TYPE);
-    return;
+    else
+    {
+        throw_error(UNKNOWN_NODE_TYPE);
+    }
 }
 
 //创建运算符，如加减乘除之类的运算符
-Node* create_calculator(string s,
-                        int& count_arg)  //后者是此运算符的参数个数
+Node* create_calculator(string s, int& count_arg)  //后者是此运算符的参数个数
 {
     Node* N;
     if(s == "PRINT" || s == "SIN" || s == "LOG" || s == "EXP" || s == "SIGMOID" ||
@@ -148,9 +151,9 @@ Node* create_calculator(string s,
 /**建树函数：预处理
  * 参数：s：一行创建结点的语句
  *      Var_map：结点名称到结点的映射，用于链接结点和判定语法用
+ *      all_nodes：存储途中出现的所有结点，防止同名结点覆盖后内存泄漏
 **/
-void build_tree(string s,
-                std::map < std::string, Node* >& Var_map)    // 要有單純string版本的初始化
+void build_tree(string s, map<string, Node*>& Var_map, vector<Node*>& all_nodes)
 //已經確定了第一節為變量名、第二節為 "="
 {
     stringstream is(s);  //将指令转换为字符串流
@@ -169,13 +172,14 @@ void build_tree(string s,
         return;
     }
     Var* node = new Var(vec[0]);  //確定是Var類型
+    all_nodes.push_back(node);
     if(vec.size() < 2 || vec [ 1 ] != "=")
     {
         throw_error(ILLEGAL_EXPRESSION);
         return;
     }
     bool is_legal = true;
-    Node* N = connect(vec, Var_map, 2, vec.size() - 1, is_legal);        //链接
+    Node* N = connect(vec, Var_map, 2, vec.size() - 1, is_legal, all_nodes);        //链接
     if(!is_legal)    //无法链接
     {
         std::cout << "Connect failed\n";
@@ -194,15 +198,15 @@ void build_tree(string s,
  *      Var_map：结点名字到结点的映射，用于链接结点
  *      head、tail：当前处理的语句的位置指示符
  *      is_legal：判定能否正常链接这棵树
+ *      all_nodes：存储途中出现的所有结点，防止同名结点覆盖后内存泄漏
  * 返回值：一个Node*结点，表示建好的树的根结点
 **/
 Node* connect(std::vector<string> vec, std::map<std::string, Node*>& Var_map,
-              int head, int tail, bool& is_legal)
+              int head, int tail, bool& is_legal, vector<Node*>& all_nodes)
 {
     //std::cout << head << " " << tail << "\n";
     Node* N;
-    if(head > tail)    //你能触发这个错误算你赢
-        //行吧打脸了，刚写完这个注释我就触发了这个错误。
+    if(head > tail)    //区间长度小于0，应为代码出错，请检查代码
     {
         is_legal = false;
         throw_error(UNKNOWN_ERROR);
@@ -225,7 +229,7 @@ Node* connect(std::vector<string> vec, std::map<std::string, Node*>& Var_map,
     {
         int count_bracket = 0; //判定括号用的参数
         int position_least_priority = -1; //最后一个运算的符号
-        int least_priority = 10000;//别搞出10000个运算符就好。。
+        int least_priority = 10000;//运算符优先级上限，做INF使用
         int count_arg;//运算符数
         for(int i = head; i <= tail; i++)
         {
@@ -255,7 +259,7 @@ Node* connect(std::vector<string> vec, std::map<std::string, Node*>& Var_map,
                 is_legal = false;
                 return N;
             }
-            N = connect(vec, Var_map, head + 1, tail - 1, is_legal);
+            N = connect(vec, Var_map, head + 1, tail - 1, is_legal, all_nodes);
             if(!is_legal)
             {
                 return N;
@@ -278,12 +282,13 @@ Node* connect(std::vector<string> vec, std::map<std::string, Node*>& Var_map,
                 return N;
             }
 
+            all_nodes.push_back(N);
             /**********语法检查**********/
             switch(count_arg)
             {
             case 1: //单目运算符
             {
-                Node* n = connect(vec, Var_map, position_least_priority + 1, tail, is_legal);
+                Node* n = connect(vec, Var_map, position_least_priority + 1, tail, is_legal, all_nodes);
                 if(!is_legal)
                 {
                     return N;
@@ -304,13 +309,13 @@ Node* connect(std::vector<string> vec, std::map<std::string, Node*>& Var_map,
                         return N;
                     }
                     Node* n1 = connect(vec, Var_map, position_least_priority + 1,
-                                       position_least_priority + 1, is_legal);
+                                       position_least_priority + 1, is_legal, all_nodes);
                     if(!is_legal)
                     {
                         return N;
                     }
                     Node* n2 = connect(vec, Var_map, position_least_priority + 2,
-                                       position_least_priority + 2, is_legal);
+                                       position_least_priority + 2, is_legal, all_nodes);
                     if(!is_legal)
                     {
                         return N;
@@ -320,13 +325,13 @@ Node* connect(std::vector<string> vec, std::map<std::string, Node*>& Var_map,
                     break;
                 }
                 Node* n1 = connect(vec, Var_map, head, position_least_priority - 1,
-                                   is_legal); //链接左侧
+                                   is_legal, all_nodes); //链接左侧
                 if(!is_legal)
                 {
                     return N;
                 }
                 Node* n2 = connect(vec, Var_map, position_least_priority + 1, tail,
-                                   is_legal); //链接右侧
+                                   is_legal, all_nodes); //链接右侧
                 if(!is_legal)
                 {
                     return N;
@@ -346,19 +351,19 @@ Node* connect(std::vector<string> vec, std::map<std::string, Node*>& Var_map,
                     return N;
                 }
                 Node* n1 = connect(vec, Var_map, position_least_priority + 1,
-                                   position_least_priority + 1, is_legal);
+                                   position_least_priority + 1, is_legal, all_nodes);
                 if(!is_legal)
                 {
                     return N;
                 }
                 Node* n2 = connect(vec, Var_map, position_least_priority + 2,
-                                   position_least_priority + 2, is_legal);
+                                   position_least_priority + 2, is_legal, all_nodes);
                 if(!is_legal)
                 {
                     return N;
                 }
                 Node* n3 = connect(vec, Var_map, position_least_priority + 3,
-                                   position_least_priority + 3, is_legal);
+                                   position_least_priority + 3, is_legal, all_nodes);
                 if(!is_legal)
                 {
                     return N;
@@ -373,4 +378,11 @@ Node* connect(std::vector<string> vec, std::map<std::string, Node*>& Var_map,
         }
     }
     return N;
+}
+
+//释放计算图处理途中出现的所有结点，务必在运算结束时调用
+void free_nodes(std::vector<Node*>& all_nodes)
+{
+    for(auto nd : all_nodes)
+        delete nd;
 }

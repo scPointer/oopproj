@@ -9,20 +9,81 @@
 
 using namespace std;
 
-//Node类
-
+/**
+ * 由于 Node 类中虚函数很多，它们几乎在每个类中都有实现，
+ * 因此本文件按照如下组织方式：
+ * 先给出所有类（依照 .h 文件顺序）的非重载覆盖的函数的实现
+ * 然后给出所有类的 init() 的实现 (from line 89)
+ * 然后是所有类的 get_name() 实现 (from line 118)
+ * 然后是所有类的 cal() 实现 (from line 128)
+ * 然后是所有类的 grad() 实现 (from line 326)
+ * 然后是所有类的 calculate() 实现 (from line 524)
+ */
 void Node::add_next(Node* N)
 {
     Node::next.push_back(N);
 }
-void Node::del()
+
+void ValueNode::print_var_name()
 {
-    int len = next.size();
-    for(int i = 0; i < len; i ++)
+    cout << "PRINT operator: " <<  var_name << " = ";
+}
+
+void Placeholder::eval(double v)
+{
+    value = v;
+    have_value = true;
+}
+
+double Var::compute_at(Node* target, bool& is_legal)
+{
+    have_value = true;
+    Grad_Operator* grad_node = dynamic_cast<Grad_Operator*>(next[0]);
+    if(grad_node)
     {
-        delete next [ i ];
+        return grad_node->grad_at(target, is_legal);
     }
-    vector < Node* > ().swap(next);
+    else
+    {
+        Var* var_node = dynamic_cast<Var*>(next[0]);
+        if(var_node)
+        {
+            return var_node->compute_at(target, is_legal);
+        }
+        else
+        {
+            is_legal = false;
+            throw_error(GRAD_OPERATOR_NOT_FOUND);
+            return 0.0;
+        }
+    }
+
+}
+
+bool Var::check_grad_empty()
+{
+    return grad_of.empty();
+}
+
+void Var::clear_grad()
+{
+    grad_of.clear();
+}
+
+int OperatorNode::get_priority(std::string c)
+{
+    if(c == "<" || c == ">" || c == "<=" || c== ">=" || c == "==") return 1;
+    else if(c == "+" || c == "-") return 2;
+    else if(c == "*" || c == "/") return 3;
+    else if(c == "AT") return 4;
+    else if(c == "SIN" || c == "LOG" || c== "EXP" || c=="SIGMOID" || c == "TANH") return 5;
+    else if(c == "PRINT" || c == "ASSERT" || c == "COND" || c == "BIND" || c == "GRAD") return 6;
+    else return 0;
+}
+
+double Grad_Operator::grad_at(Node* target, bool& is_legal)
+{
+    return next[0]->grad(target, is_legal);
 }
 
 void Node::init()
@@ -31,12 +92,6 @@ void Node::init()
     {
         i->init();
     }
-}
-
-void Placeholder::eval(double v)
-{
-    value = v;
-    have_value = true;
 }
 
 void Placeholder::init()
@@ -60,48 +115,15 @@ void Var::init()
     }
 }
 
-void ValueNode::print_var_name()
-{
-    cout << "PRINT operator: " <<  var_name << " = ";
-}
-
-std::string Var::get_name()
-{
-    return "Var";
-}
-std::string Placeholder::get_name()
-{
-    return "Placeholder";
-}
-std::string Variable::get_name()
-{
-    return "Variable";
-}
-std::string Constant::get_name()
-{
-    return "Constant";
-}
-std::string Unary_Operator::get_name()
-{
-    return "Unary_Operator";
-}
-std::string Binary_Operator::get_name()
-{
-    return "Binary_Operator";
-}
-std::string Ternary_Operator::get_name()
-{
-    return "Ternary_Operator";
-}
-std::string Grad_Operator::get_name()
-{
-    return "Grad_Operator";
-}
-std::string At_Operator::get_name()
-{
-    return "At_Operator";
-}
-//运算符类
+std::string Var::get_name() {return "Var";}
+std::string Placeholder::get_name() {return "Placeholder";}
+std::string Variable::get_name() {return "Variable";}
+std::string Constant::get_name() {return "Constant";}
+std::string Unary_Operator::get_name() {return "Unary_Operator";}
+std::string Binary_Operator::get_name() {return "Binary_Operator";}
+std::string Ternary_Operator::get_name() {return "Ternary_Operator";}
+std::string Grad_Operator::get_name() {return "Grad_Operator";}
+std::string At_Operator::get_name() {return "At_Operator";}
 
 double Unary_Operator::cal(double v, bool& is_legal)
 {
@@ -499,41 +521,6 @@ double At_Operator::grad(Node* target, bool& is_legal)
     return 0.0;
 }
 
-double Var::compute_at(Node* target, bool& is_legal)
-{
-    have_value = true;
-    Grad_Operator* grad_node = dynamic_cast<Grad_Operator*>(next[0]);
-    if(grad_node)
-    {
-        return grad_node->grad_at(target, is_legal);
-    }
-    else
-    {
-        Var* var_node = dynamic_cast<Var*>(next[0]);
-        if(var_node)
-        {
-            return var_node->compute_at(target, is_legal);
-        }
-        else
-        {
-            is_legal = false;
-            throw_error(GRAD_OPERATOR_NOT_FOUND);
-            return 0.0;
-        }
-    }
-
-}
-
-bool Var::check_grad_empty()
-{
-    return grad_of.empty();
-}
-
-void Var::clear_grad()
-{
-    grad_of.clear();
-}
-
 double Placeholder::calculate(bool& is_legal)
 {
     if(have_value)
@@ -655,94 +642,3 @@ double Ternary_Operator::calculate(bool& is_legal)
     double v = cal(v1, v2, v3, is_legal);        //计算
     return v;
 }
-
-double Grad_Operator::grad_at(Node* target, bool& is_legal)
-{
-    return next[0]->grad(target, is_legal);
-}
-
-int OperatorNode::get_priority(std::string c)
-{
-    if(c == "<")
-    {
-        return 1;
-    }
-    if(c == ">")
-    {
-        return 1;
-    }
-    if(c == "<=")
-    {
-        return 1;
-    }
-    if(c == ">=")
-    {
-        return 1;
-    }
-    if(c == "==")
-    {
-        return 1;
-    }
-    if(c == "+")
-    {
-        return 2;
-    }
-    if(c == "-")
-    {
-        return 2;
-    }
-    if(c == "*")
-    {
-        return 3;
-    }
-    if(c == "/")
-    {
-        return 3;
-    }
-    if(c == "AT")
-    {
-        return 4;
-    }
-    if(c == "SIN")
-    {
-        return 5;
-    }
-    if(c == "LOG")
-    {
-        return 5;
-    }
-    if(c == "EXP")
-    {
-        return 5;
-    }
-    if(c == "SIGMOID")
-    {
-        return 5;
-    }
-    if(c == "TANH")
-    {
-        return 5;
-    }
-    if(c == "PRINT")
-    {
-        return 6;
-    }
-    if(c == "ASSERT")
-    {
-        return 6;
-    }
-    if(c == "COND")
-    {
-        return 6;
-    }
-    if(c == "BIND")
-    {
-        return 6;
-    }
-    if(c == "GRAD")
-    {
-        return 6;
-    }
-    return 0;
-}
-//#end#

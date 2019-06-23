@@ -9,6 +9,7 @@ using namespace std;
 int main()
 {
     map<string, Node*> my_map;
+    vector<Node*> all_nodes;
     vector<double> set_answer_value;
 
     int m;
@@ -52,12 +53,12 @@ int main()
         for(int i = 1; i <= n + 2; i++)
         {
             getline(vars, buffer);
-            build_var(buffer, my_map);
+            build_var(buffer, my_map, all_nodes);
         }
         for(int i = 1; i <= 2; i++)
         {
             getline(nodes, buffer);
-            build_tree(buffer, my_map);
+            build_tree(buffer, my_map, all_nodes);
         }
         int counts = calc_times * 2 - 1;
         for(int i = 1; i <= counts; i++)
@@ -73,4 +74,5 @@ int main()
         my_map.clear();
         set_answer_value.clear();
     }
+    free_nodes(all_nodes);
 }

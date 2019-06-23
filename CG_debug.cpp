@@ -5,9 +5,9 @@ void throw_error(int v, std::string s = "")
 {
     switch(v)
     {
-    case 0 : //一般这个错误是只要不乱搞就不会出现的。如果出现了，那就代表我也不知道哪里出了问题。
+    case 0 : //未知错误，如出现一般是代码问题，请检查实现和使用该错误的语句。
     {
-        std::cout << "ERROR: Unknown type error\n";
+        std::cout << "ERROR: Unknown error\n";
         break;
     }
     case 1 : //被零除
@@ -30,12 +30,6 @@ void throw_error(int v, std::string s = "")
         std::cout << "ERROR: LOG operator's input must be positive\n";
         break;
     }
-    /*        case 5 : //。。。算了我也不知道我定义这个干什么的
-     *       {
-     *           std::cout << "ERROR: No matching operators\n";
-     *           break;
-     *       }
-     */
     case 6 : //调用eval函数访问非Placeholder结点或非Var结点
     {
         std::cout << "ERROR: Cannot evaluate a non-Placeholder or a non-Var type node\n";
@@ -46,24 +40,9 @@ void throw_error(int v, std::string s = "")
         std::cout << "ERROR: Cannot find node called '" << s << "'\n";
         break;
     }
-    case 8 : //由于未知运算符导致无法计算。其实我觉得这个触发不了。。。
-    {
-        std::cout << "ERROR: Cannot compute. Please check if you have added new operators. ";
-        break;
-    }
-    case 9 : //我为啥要定义这个？？？
-    {
-        std::cout << "ERROR: Unknown operator type\n";
-        break;
-    }
     case 10 : //不规范表达式
     {
         std::cout << "ERROR: illegal expression\n";
-        break;
-    }
-    case 11 : //不存在结点（我才发现和7重复了。。。）
-    {
-        std::cout << "ERROR: Non-existent node '" << s << "'\n";
         break;
     }
     case 12 : //试图用get_value函数访问运算符结点
@@ -142,7 +121,7 @@ void throw_error(int v, std::string s = "")
         std::cout << "ERROR: The operator AT should be used after GRAD\n";
         break;
     }
-    default : //如果你自己写了throw_error并且随意写参数值。。。那就不知道你想要调用哪个错误类型了
+    default : //未知错误类型，请检查参数 v 是否为已定义错误类型
     {
         std::cout << "Unknown error! Please check the function throw_error() got correct parameters\n";
         break;

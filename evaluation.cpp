@@ -8,6 +8,13 @@
 #include <cstdlib>
 #include <iostream>
 
+/**
+ * Function string2double
+ * 作用：将字符串转为double，并判断是否非法或有溢出
+ * 传参： v: 要存入的double类型变量 
+ *       s：待转换字符串
+ * 返回值：一个bool类型变量，表示是否转换成功
+**/
 
 bool string2double(double& v, std::string s)
 {
@@ -65,13 +72,9 @@ bool Compute(std::string s, std::map < std::string, Node* >& Var_map,
             return false;
         }
 
-        /**********语法检查**********/
-
         double v;
-        if(!string2double(v, vec[2]))
+        if(!string2double(v, vec[2]))  //转为 double，并语法检查
             return false;
-
-        /**********end**********/
 
         if(Var_map[vec[1]]->get_name() != "Variable")//语法检查：防止SET一个不正确的类型
         {
@@ -96,15 +99,10 @@ bool Compute(std::string s, std::map < std::string, Node* >& Var_map,
             return false;
         }
 
-
-        /**********语法检查**********/
-
         double v;
-        if(!string2double(v, vec[2]))
+        if(!string2double(v, vec[2])) //转为 double，并语法检查
             return false;
         
-        /**********end**********/
-
         if(Var_map [ vec [ 1 ] ]->get_name() != "Variable")   //语法检查：防止SET一个不正确的类型
         {
             throw_error(EVALUATE_NODE_OF_ILLEGAL_TYPE_BY_SET, "SETANSWER");
@@ -124,11 +122,8 @@ bool Compute(std::string s, std::map < std::string, Node* >& Var_map,
         }
         if(vec.size() >= 3)  //确保前三个变量存在
         {
-
-            /**********语法检查**********/
-
             int Placeholder_number; //要赋值运算符个数
-            try
+            try//转为 int，并语法检查
             {
                 Placeholder_number = stoi(vec [ 2 ]);
             }
@@ -142,8 +137,6 @@ bool Compute(std::string s, std::map < std::string, Node* >& Var_map,
                 throw_error(DATA_OUT_OF_RANGE);
                 return false;
             }
-
-            /**********end**********/
 
             if(Placeholder_number * 2 + 3 > vec.size())  //语法检查：防止要赋值运算符个数与实际输入个数不同
             {
@@ -166,13 +159,9 @@ bool Compute(std::string s, std::map < std::string, Node* >& Var_map,
                     return false;
                 }
 
-                /**********语法检查**********/
-                
                 double v;
-                if(!string2double(v, vec[2 + 2 * i]))
+                if(!string2double(v, vec[2 + 2 * i]))  //转为 double，并语法检查
                     return false;
-
-                /**********end**********/
 
                 //赋值操作，之前已检查过 p 为 Placeholder 结点
                 Placeholder* p = dynamic_cast < Placeholder* >(N);
